@@ -1,0 +1,59 @@
+{
+  // 调试配置版本（VS Code 使用）。通常保持为 "0.2.0"。
+  "version": "0.2.0",
+  // compounds 用来一次启动多个调试配置（例如同时启动 electron 主进程和连接渲染进程的调试器）。
+  "compounds": [
+    {
+      // 复合配置的显示名称
+      "name": "Main + renderer",
+      // 需要同时启动的配置名数组（对应下面 configurations 中的 name）
+      "configurations": [
+        "Main",
+        "Renderer"
+      ],
+      // 当任一配置触发暂停时，是否停止其它所有配置（true/false）
+      "stopAll": true
+    }
+  ],
+  // 单个调试配置集合（主进程、渲染进程等）
+  "configurations": [
+    {
+      // 这是用于连接 Electron 渲染进程（Chromium）的调试器配置
+      "name": "Renderer",
+      // Chromium 打开的远程调试端口（这里和 Main 配置中的 --remote-debugging-port 对应）
+      "port": 9222,
+      // attach 表示附加到已有运行的浏览器实例
+      "request": "attach",
+      // 使用 Chrome / Chromium 调试器适配器
+      "type": "chrome",
+      // webRoot 用来解析源码映射（source maps）和定位源文件（相对于工作区根目录）
+      "webRoot": "${workspaceFolder}"
+    },
+    {
+      // 用来启动 Electron 主进程（Node 环境）的配置
+      "name": "Main",
+      // 使用 Node 调试器（Electron 主进程是 Node 进程）
+      "type": "node",
+      // launch 表示由 VS Code 启动新进程
+      "request": "launch",
+      // 工作目录，通常设置为工作区根，以便解析相对路径
+      "cwd": "${workspaceFolder}",
+      // 使用项目中本地安装的 electron 可执行文件，便于团队一致性
+      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+      // Windows 平台上的可执行文件路径覆盖（使用 .cmd 文件）
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
+      },
+      // 传给 electron 的命令行参数
+      "args": [
+        ".", // 表示以当前工作目录（项目根）作为 Electron 的应用入口（通常会加载 package.json 指定的 main），也可改为具体入口文件
+        // 让 Electron/Chromium 在此端口上开启远程调试，从而能让上面的 Renderer 配置附加（attach）到渲染进程
+        "--remote-debugging-port=9222"
+      ],
+      // 在某些情况希望捕获 stdout/stderr，这里使用标准流（"std"）
+      "outputCapture": "std",
+      // 在 VS Code 内置终端显示程序输出（便于交互/输入）
+      "console": "integratedTerminal"
+    }
+  ]
+}
